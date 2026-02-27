@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      # actions/setup-go@v4
+      - name: Setup Go
+        uses: actions/setup-go@7b8cf10d4e4a01d4992d18a89f4d7dc5a3e6d6f4
+        with:
+          go-version-file: go.mod
+
+      # goreleaser/goreleaser-action@v5
+      - name: GoReleaser
+        uses: goreleaser/goreleaser-action@5742e2a039330cbb23ebf35f046f814d4c6ff811
+        with:
+          version: v2.2.0
+          args: release -f goreleaser.yaml --rm-dist --timeout 60m
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
