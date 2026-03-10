@@ -8,7 +8,7 @@
 # If you see TLS/certificate errors (e.g. in IDE sandbox), run go mod tidy from your terminal
 # or in an environment that has access to your Go proxy / cert store.
 
-.PHONY: deps build clean test test-integration license-report license-save add-license check-license
+.PHONY: deps build clean test test-integration license-report add-license check-license
 
 deps:
 	go mod tidy
@@ -30,25 +30,22 @@ test: deps
 test-integration: build
 	go test -v -tags=integration ./...
 
-# Third-party license report (CSV). Requires go-licenses: go install github.com/google/go-licenses/v2@latest
-# Ignore Go stdlib only so go-licenses can complete (tool treats stdlib "no module info" as fatal; we only need third-party licenses). Real third-party failures still propagate.
-GO_LICENSES_IGNORE_STDLIB := --ignore=archive --ignore=bufio --ignore=bytes --ignore=cmp --ignore=compress --ignore=container --ignore=context --ignore=crypto --ignore=database --ignore=debug --ignore=encoding --ignore=errors --ignore=flag --ignore=fmt --ignore=go --ignore=hash --ignore=internal --ignore=io --ignore=iter --ignore=log --ignore=maps --ignore=math --ignore=mime --ignore=net --ignore=os --ignore=path --ignore=reflect --ignore=regexp --ignore=runtime --ignore=slices --ignore=sort --ignore=strconv --ignore=strings --ignore=sync --ignore=syscall --ignore=testing --ignore=text --ignore=time --ignore=unicode --ignore=unique --ignore=vendor --ignore=weak
-
-# Output: LICENSE-3rdparty.csv with columns Component,Origin,License,Copyright.
-# Copyright column is left empty; run 'make license-save' to collect full license/copyright files.
-# Warnings and errors in go-licenses output may be expected (see https://github.com/google/go-licenses).
+# Third-party license report (CSV) with Component, Origin, License, and Copyright.
+# Uses dd-license-attribution so the Copyright column is populated.
+#
+# Install dd-license-attribution (pinned version):
+#   pip install 'dd-license-attribution @ git+https://github.com/DataDog/dd-license-attribution.git@$(DDLA_VERSION)'
+# On macOS, install system deps first so scancode-toolkit (pyicu) can build:
+#   brew install icu4c pkg-config libmagic && brew link icu4c --force
+# Then set PKG_CONFIG_PATH if needed: export PKG_CONFIG_PATH="$(brew --prefix icu4c)/lib/pkgconfig"
+#
+# Or from a clone: git clone --depth 1 --branch $(DDLA_VERSION) https://github.com/DataDog/dd-license-attribution && cd dd-license-attribution && pip install .
+DDLA_VERSION ?= v0.5.0
+DDLA_REPO_URL ?= https://github.com/DataDog/trivy-plugin-govulncheck
 license-report: deps
-	@which go-licenses >/dev/null 2>&1 || (echo "Install go-licenses: go install github.com/google/go-licenses/v2@latest" && exit 1)
-	@echo "Component,Origin,License,Copyright" > LICENSE-3rdparty.csv
-	@go-licenses report . $(GO_LICENSES_IGNORE_STDLIB) 2>/dev/null | awk -F',' 'BEGIN {OFS=","} {print $$1,$$2,$$3,""}' >> LICENSE-3rdparty.csv
+	@which dd-license-attribution >/dev/null 2>&1 || (echo "Install dd-license-attribution $(DDLA_VERSION). On macOS first: brew install icu4c pkg-config libmagic && brew link icu4c --force. Then: pip install 'dd-license-attribution @ git+https://github.com/DataDog/dd-license-attribution.git@$(DDLA_VERSION)'" && exit 1)
+	@dd-license-attribution generate-sbom-csv --no-pypi-strategy --no-npm-strategy --no-gh-auth "$(DDLA_REPO_URL)" > LICENSE-3rdparty.csv
 	@echo "Wrote LICENSE-3rdparty.csv ($(shell wc -l < LICENSE-3rdparty.csv 2>/dev/null || echo 0) lines)"
-
-# Save all third-party license and copyright files to third_party_licenses/ (for redistribution compliance).
-# Warnings and errors in go-licenses output may be expected (see https://github.com/google/go-licenses).
-license-save: deps
-	@which go-licenses >/dev/null 2>&1 || (echo "Install go-licenses: go install github.com/google/go-licenses/v2@latest" && exit 1)
-	@go-licenses save . $(GO_LICENSES_IGNORE_STDLIB) --save_path=third_party_licenses
-	@echo "Saved licenses and notices to third_party_licenses/"
 
 # Add Apache 2.0 license header to source files. Requires addlicense: go install github.com/google/addlicense@latest
 # Uses .addlicense-header template (// style for Go). Only processes *.go; for other files (e.g. .sh, Makefile) add headers manually or use a separate template.
@@ -65,15 +62,14 @@ add-license:
 # Fails if any file is missing the license header or if LICENSE-3rdparty.csv is out of date.
 check-license: deps
 	@which addlicense >/dev/null 2>&1 || (echo "Install addlicense: go install github.com/google/addlicense@latest" && exit 1)
-	@which go-licenses >/dev/null 2>&1 || (echo "Install go-licenses: go install github.com/google/go-licenses/v2@latest" && exit 1)
+	@which dd-license-attribution >/dev/null 2>&1 || (echo "Install dd-license-attribution $(DDLA_VERSION). On macOS first: brew install icu4c pkg-config libmagic && brew link icu4c --force. Then: pip install 'dd-license-attribution @ git+https://github.com/DataDog/dd-license-attribution.git@$(DDLA_VERSION)'" && exit 1)
 	@echo "Checking license headers..."
 	@addlicense -check -c "$(ADDLICENSE_COPYRIGHT)" -y "$(ADDLICENSE_YEAR)" -f .addlicense-header \
 		-ignore 'vendor/**' -ignore 'dist/**' -ignore '.git/**' -ignore 'third_party_licenses/**' \
 		-ignore '**/trivy-govulncheck' -ignore '**/*.yaml' -ignore '**/*.yml' .
 	@echo "Checking LICENSE-3rdparty.csv is up to date..."
 	@tmp=$$(mktemp); \
-	echo "Component,Origin,License,Copyright" > $$tmp; \
-	go-licenses report . $(GO_LICENSES_IGNORE_STDLIB) 2>/dev/null | awk -F',' 'BEGIN {OFS=","} {print $$1,$$2,$$3,""}' >> $$tmp; \
+	dd-license-attribution generate-sbom-csv --no-pypi-strategy --no-npm-strategy --no-gh-auth "$(DDLA_REPO_URL)" > $$tmp; \
 	diff -u LICENSE-3rdparty.csv $$tmp > /dev/null || { echo "LICENSE-3rdparty.csv is out of date. Run 'make license-report' and commit."; diff -u LICENSE-3rdparty.csv $$tmp; rm -f $$tmp; exit 1; }; \
 	rm -f $$tmp
 	@echo "License check passed."

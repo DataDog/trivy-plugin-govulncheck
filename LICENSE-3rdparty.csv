@@ -1,23 +1,32 @@
-Component,Origin,License,Copyright
-github.com/DataDog/trivy-plugin-govulncheck,https://github.com/DataDog/trivy-plugin-govulncheck/blob/HEAD/LICENSE,Apache-2.0,
-github.com/aquasecurity/trivy-db/pkg/types,https://github.com/aquasecurity/trivy-db/blob/8ee75f8f4fff/LICENSE,Apache-2.0,
-github.com/aquasecurity/trivy/pkg,https://github.com/aquasecurity/trivy/blob/v0.69.3/LICENSE,Apache-2.0,
-github.com/containerd/stargz-snapshotter/estargz,https://github.com/containerd/stargz-snapshotter/blob/estargz/v0.18.2/estargz/LICENSE,Apache-2.0,
-github.com/docker/cli/cli/config,https://github.com/docker/cli/blob/v29.3.0/LICENSE,Apache-2.0,
-github.com/docker/distribution/registry/client/auth/challenge,https://github.com/docker/distribution/blob/v2.8.3/LICENSE,Apache-2.0,
-github.com/docker/docker-credential-helpers,https://github.com/docker/docker-credential-helpers/blob/v0.9.5/LICENSE,MIT,
-github.com/google/go-containerregistry,https://github.com/google/go-containerregistry/blob/v0.21.2/LICENSE,Apache-2.0,
-github.com/google/uuid,https://github.com/google/uuid/blob/v1.6.0/LICENSE,BSD-3-Clause,
-github.com/klauspost/compress,https://github.com/klauspost/compress/blob/v1.18.4/LICENSE,MIT,
-github.com/klauspost/compress,https://github.com/klauspost/compress/blob/v1.18.4/LICENSE,Apache-2.0,
-github.com/klauspost/compress,https://github.com/klauspost/compress/blob/v1.18.4/LICENSE,BSD-3-Clause,
-github.com/klauspost/compress/internal/snapref,https://github.com/klauspost/compress/blob/v1.18.4/internal/snapref/LICENSE,BSD-3-Clause,
-github.com/klauspost/compress/zstd/internal/xxhash,https://github.com/klauspost/compress/blob/v1.18.4/zstd/internal/xxhash/LICENSE.txt,MIT,
-github.com/mitchellh/go-homedir,https://github.com/mitchellh/go-homedir/blob/v1.1.0/LICENSE,MIT,
-github.com/opencontainers/go-digest,https://github.com/opencontainers/go-digest/blob/v1.0.0/LICENSE,Apache-2.0,
-github.com/opencontainers/image-spec/specs-go,https://github.com/opencontainers/image-spec/blob/v1.1.1/LICENSE,Apache-2.0,
-github.com/openvex/go-vex/pkg,https://github.com/openvex/go-vex/blob/v0.2.7/LICENSE,Apache-2.0,
-github.com/package-url/packageurl-go,https://github.com/package-url/packageurl-go/blob/v0.1.5/LICENSE,MIT,
-github.com/samber/lo,https://github.com/samber/lo/blob/v1.53.0/LICENSE,MIT,
-github.com/sirupsen/logrus,https://github.com/sirupsen/logrus/blob/v1.9.4/LICENSE,MIT,
-github.com/vbatts/tar-split/archive/tar,https://github.com/vbatts/tar-split/blob/v0.12.2/LICENSE,BSD-3-Clause,
+"component","origin","license","copyright"
+"com.github.DataDog/trivy-plugin-govulncheck","git+https://github.com/DataDog/trivy-plugin-govulncheck","['Apache-2.0']","['DataDog', 'Datadog, Inc.']"
+"github.com/DataDog/trivy-plugin-govulncheck","https://github.com/DataDog/trivy-plugin-govulncheck","['Apache-2.0']","['DataDog', 'Datadog, Inc.']"
+"github.com/aquasecurity/trivy","https://github.com/aquasecurity/trivy","['Apache-2.0']","['Alexey Raspopov, Kostiantyn Denysov, Anton Verinov', 'Andrey Sitnik', 'Aqua Security Software Ltd.', 'Corporation for National Research Initiatives', 'Mozilla Foundation and contributors', 'Python Software Foundation', 'Stichting Mathematisch Centrum Amsterdam, The Netherlands', 'Yuxi', 'test', 'various contributors']"
+"github.com/aquasecurity/trivy-db","https://github.com/aquasecurity/trivy-db","['Apache-2.0']","['Aqua Security Software Ltd.']"
+"github.com/containerd/stargz-snapshotter/estargz","https://github.com/containerd/stargz-snapshotter/tree/main/estargz","['Apache-2.0']","['The Go Authors']"
+"github.com/docker/cli","https://github.com/docker/cli","['Apache-2.0']","['Daniel Marti', 'Docker, Inc.']"
+"github.com/docker/distribution","https://github.com/docker/distribution","['Apache-2.0']","['Damien Le Berrigaud and Nick Wade']"
+"github.com/docker/docker-credential-helpers","https://github.com/docker/docker-credential-helpers","['MIT']","['David Calavera']"
+"github.com/google/go-containerregistry","https://github.com/google/go-containerregistry","['Apache-2.0']","['Alan Shreve', 'Alex Ogier', 'Brian Goff', 'Caleb Spare', 'Canonical Ltd', 'Canonical Ltd.', 'Dave Cheney', 'David Calavera', 'Docker, Inc.', 'Felix Geisendorfer', 'Kirill Simonov', 'Klaus Post', 'Microsoft', 'Mitchell Hashimoto', 'OCI Contributors', 'Russ Ross', 'Simon Eskildsen', 'The Go Authors', 'The Linux Foundation', 'The New York Times Company', 'The Snappy-Go Authors', 'The filepathx', 'Vincent Batts, Raleigh, NC']"
+"github.com/google/uuid","https://github.com/google/uuid","['BSD-3-Clause']","['Google Inc.']"
+"github.com/klauspost/compress","https://github.com/klauspost/compress","['Apache-2.0 AND BSD-3-Clause AND MIT']","[""'. // Search"", ""'. Search"", '+ Klaus Post', 'Caleb Spare', 'Credit', 'Credit Agricole', 'Evan Huus', 'Google LLC', 'Klaus Post', 'Pierre Curto', 'The Go Authors', 'The New York Times Company', 'The Snappy-Go Authors', 'The filepathx Authors', 'Yann Collet', 'd']"
+"github.com/kr/text","https://github.com/kr/text","['MIT']","['Keith Rarick']"
+"github.com/mitchellh/go-homedir","https://github.com/mitchellh/go-homedir","['MIT']","['Mitchell Hashimoto']"
+"github.com/opencontainers/go-digest","https://github.com/opencontainers/go-digest","['Apache-2.0 AND CC-BY-SA-4.0']","['Docker, Inc.', 'OCI Contributors', 'The Linux Foundation and its contributors']"
+"github.com/opencontainers/image-spec","https://github.com/opencontainers/image-spec","['Apache-2.0 AND LicenseRef-scancode-dco-1.1 AND MIT']","['The Linux Foundation', 'The Linux Foundation and its contributors']"
+"github.com/openvex/go-vex","https://github.com/openvex/go-vex","['Apache-2.0']","['Red Hat, Inc.', 'The OpenVEX Authors']"
+"github.com/package-url/packageurl-go","https://github.com/package-url/packageurl-go","['MIT']","['package-url']"
+"github.com/samber/lo","https://github.com/samber/lo","['MIT']","['Samuel Berthe']"
+"github.com/sirupsen/logrus","https://github.com/sirupsen/logrus","['MIT']","['Simon Eskildsen']"
+"github.com/vbatts/tar-split","https://github.com/vbatts/tar-split","['BSD-3-Clause']","['NC', 'Raleigh', 'The Go Authors', 'Vincent Batts']"
+"golang.org/x/mod","https://golang.org/x/mod","['BSD-3-Clause AND LicenseRef-scancode-google-patent-license-golang']","['The Go Authors']"
+"golang.org/x/sync","https://golang.org/x/sync","['BSD-3-Clause']","['The Go Authors']"
+"golang.org/x/sys","https://golang.org/x/sys","['BSD-3-Clause']","['The Go Authors']"
+"golang.org/x/telemetry","https://golang.org/x/telemetry","['BSD-3-Clause']","['The Go Authors']"
+"golang.org/x/text","https://golang.org/x/text","['BSD-3-Clause AND LicenseRef-scancode-google-patent-license-golang']","['AAEE', 'AeHa', 'EAiE A', 'EeAoq', 'The Go Authors', 'aA""AE 1AE', 'lEEe AE', 'oav!A AY']"
+"golang.org/x/tools","https://golang.org/x/tools","['BSD-3-Clause AND LicenseRef-scancode-google-patent-license-golang']","['Bruce Ellis', 'Lucent Technologies Inc.', 'Lucent Technologies Inc. and others', 'Portions', 'Portions C H Forsyth (forsyth@terzarima.net)', 'Portions The Go Authors', 'Portions Vita Nuova Holdings Limited (www.vitanuova.com)', 'Portions Vita Nuova Limited', 'The Go Authors', 'jQuery Foundation and other contributors']"
+"golang.org/x/tools/go/packages/packagestest","golang.org/x/tools/go/packages/packagestest","['BSD-3-Clause']","['The Go Authors']"
+"golang.org/x/vuln","https://golang.org/x/vuln","['BSD-3-Clause AND CC-BY-4.0 AND LicenseRef-scancode-google-patent-license-golang']","['20 d d The Go Authors', 'The Go Authors']"
+"golang.org/x/xerrors","https://golang.org/x/xerrors","['BSD-3-Clause AND LicenseRef-scancode-google-patent-license-golang']","['The Go Authors']"
+"gopkg.in/yaml.v3","https://gopkg.in/yaml.v3","['Apache-2.0']","['Canonical Ltd', 'Canonical Ltd.', 'Kirill Simonov']"
+
