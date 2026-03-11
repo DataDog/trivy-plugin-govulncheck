@@ -15,6 +15,8 @@ jobs:
       # actions/checkout@v4
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0  # required for GoReleaser version/changelog from tag
 
       # actions/setup-go@v4
       - name: Setup Go
@@ -27,6 +29,6 @@ jobs:
         uses: goreleaser/goreleaser-action@5742e2a039330cbb23ebf35f046f814d4c6ff811
         with:
           version: v2.2.0
-          args: release -f goreleaser.yaml --rm-dist --timeout 60m
+          args: release -f goreleaser.yaml --clean --timeout 60m
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
