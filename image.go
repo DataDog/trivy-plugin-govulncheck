@@ -7,11 +7,14 @@ package main
 
 import (
 	"archive/tar"
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
@@ -83,8 +86,22 @@ func extractImageToTemp(imageRef string) (string, func(), error) {
 	return dir, cleanup, nil
 }
 
+// isSymlinkLoopErr returns true if the error is caused by too many levels of
+// symbolic links (ELOOP). This happens when container images contain circular
+// symlinks (e.g. OpenSSL man pages in Ubuntu images).
+func isSymlinkLoopErr(err error) bool {
+	if errors.Is(err, syscall.ELOOP) {
+		log.Printf("govulncheck plugin: skipping entry due to symlink loop: %v", err)
+		return true
+	}
+	return false
+}
+
 // extractTarToDir extracts a tar stream to dir, handling OCI whiteout entries.
 // Whiteout: entries named .wh.<path> mean remove <path>; .wh..wh..opq means opaque dir.
+// Entries that fail due to circular symlinks (ELOOP) are silently skipped — this
+// is common in Ubuntu-based images where OpenSSL man pages contain symlink loops.
+// The Go binaries we need are never behind such loops.
 func extractTarToDir(r io.Reader, dir string) error {
 	tr := tar.NewReader(r)
 	for {
@@ -118,14 +135,27 @@ func extractTarToDir(r io.Reader, dir string) error {
 			}
 		case hdr.Typeflag == tar.TypeDir:
 			if err := os.MkdirAll(target, 0o755); err != nil && !os.IsExist(err) {
+				if isSymlinkLoopErr(err) {
+					continue
+				}
 				return err
 			}
 		case hdr.Typeflag == tar.TypeReg || hdr.Typeflag == tar.TypeRegA:
 			if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil && !os.IsExist(err) {
+				if isSymlinkLoopErr(err) {
+					continue
+				}
 				return err
 			}
 			f, err := os.Create(target)
 			if err != nil {
+				if isSymlinkLoopErr(err) {
+					// Drain the tar entry so the reader stays in sync
+					if hdr.Size > 0 {
+						_, _ = io.CopyN(io.Discard, tr, hdr.Size)
+					}
+					continue
+				}
 				return err
 			}
 			size := hdr.Size
@@ -143,10 +173,16 @@ func extractTarToDir(r io.Reader, dir string) error {
 			f.Close()
 		case hdr.Typeflag == tar.TypeSymlink:
 			if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil && !os.IsExist(err) {
+				if isSymlinkLoopErr(err) {
+					continue
+				}
 				return err
 			}
 			_ = os.Remove(target)
 			if err := os.Symlink(hdr.Linkname, target); err != nil {
+				if isSymlinkLoopErr(err) {
+					continue
+				}
 				return err
 			}
 		}

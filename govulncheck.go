@@ -87,8 +87,10 @@ func parseGovulncheckOpenVEX(data []byte, vulnDBURL string) (dbInfo *govulncheck
 				considered[string(a)] = struct{}{}
 			}
 		}
-		// Confirmed: only when govulncheck reports status "called" (vulnerable code in binary call graph)
-		if string(s.Status) == "called" {
+		// Confirmed: when govulncheck reports the vulnerable code is in the binary call graph.
+		// OpenVEX format uses "affected" for symbol-level matches; older govulncheck used "called".
+		status := string(s.Status)
+		if status == "affected" || status == "called" {
 			if v.Name != "" {
 				confirmed[string(v.Name)] = struct{}{}
 			}
