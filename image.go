@@ -86,15 +86,19 @@ func extractImageToTemp(imageRef string) (string, func(), error) {
 	return dir, cleanup, nil
 }
 
-// isSymlinkLoopErr returns true if the error is caused by too many levels of
-// symbolic links (ELOOP). This happens when container images contain circular
-// symlinks (e.g. OpenSSL man pages in Ubuntu images).
-func isSymlinkLoopErr(err error) bool {
-	if errors.Is(err, syscall.ELOOP) {
-		log.Printf("govulncheck plugin: skipping entry due to symlink loop: %v", err)
-		return true
+// errIsSymlinkLoop reports whether err is errno ELOOP (too many levels of symbolic links).
+// Container images may contain circular symlinks (e.g. OpenSSL man pages on Ubuntu).
+func errIsSymlinkLoop(err error) bool {
+	return errors.Is(err, syscall.ELOOP)
+}
+
+// skipDueToSymlinkLoop logs and returns true when err is ELOOP so extractTarToDir can skip the entry.
+func skipDueToSymlinkLoop(err error) bool {
+	if !errIsSymlinkLoop(err) {
+		return false
 	}
-	return false
+	log.Printf("govulncheck plugin: skipping entry due to symlink loop: %v", err)
+	return true
 }
 
 // extractTarToDir extracts a tar stream to dir, handling OCI whiteout entries.
@@ -135,21 +139,21 @@ func extractTarToDir(r io.Reader, dir string) error {
 			}
 		case hdr.Typeflag == tar.TypeDir:
 			if err := os.MkdirAll(target, 0o755); err != nil && !os.IsExist(err) {
-				if isSymlinkLoopErr(err) {
+				if skipDueToSymlinkLoop(err) {
 					continue
 				}
 				return err
 			}
 		case hdr.Typeflag == tar.TypeReg || hdr.Typeflag == tar.TypeRegA:
 			if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil && !os.IsExist(err) {
-				if isSymlinkLoopErr(err) {
+				if skipDueToSymlinkLoop(err) {
 					continue
 				}
 				return err
 			}
 			f, err := os.Create(target)
 			if err != nil {
-				if isSymlinkLoopErr(err) {
+				if skipDueToSymlinkLoop(err) {
 					// Drain the tar entry so the reader stays in sync
 					if hdr.Size > 0 {
 						_, _ = io.CopyN(io.Discard, tr, hdr.Size)
@@ -173,14 +177,14 @@ func extractTarToDir(r io.Reader, dir string) error {
 			f.Close()
 		case hdr.Typeflag == tar.TypeSymlink:
 			if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil && !os.IsExist(err) {
-				if isSymlinkLoopErr(err) {
+				if skipDueToSymlinkLoop(err) {
 					continue
 				}
 				return err
 			}
 			_ = os.Remove(target)
 			if err := os.Symlink(hdr.Linkname, target); err != nil {
-				if isSymlinkLoopErr(err) {
+				if skipDueToSymlinkLoop(err) {
 					continue
 				}
 				return err

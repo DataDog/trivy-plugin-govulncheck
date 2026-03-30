@@ -59,7 +59,7 @@ func runGovulncheck(ctx context.Context, binaryPath string, vulnDBURL string) (d
 }
 
 // parseGovulncheckOpenVEX parses govulncheck -format openvex output using the OpenVEX standard.
-// Confirmed = vulns with status "called" (vulnerable code actually used). Considered = all vuln IDs
+// Confirmed = vulns with status "affected" (vulnerable code actually used). Considered = all vuln IDs
 // (Name + Aliases) from every statement. When vulnDBURL is non-empty, dbInfo.DB is set to it
 // (last_modified is not present in OpenVEX output).
 func parseGovulncheckOpenVEX(data []byte, vulnDBURL string) (dbInfo *govulncheckDBInfo, confirmedIDs, consideredIDs map[string]struct{}, err error) {
@@ -88,9 +88,8 @@ func parseGovulncheckOpenVEX(data []byte, vulnDBURL string) (dbInfo *govulncheck
 			}
 		}
 		// Confirmed: when govulncheck reports the vulnerable code is in the binary call graph.
-		// OpenVEX format uses "affected" for symbol-level matches; older govulncheck used "called".
 		status := string(s.Status)
-		if status == "affected" || status == "called" {
+		if status == string(vex.StatusAffected) {
 			if v.Name != "" {
 				confirmed[string(v.Name)] = struct{}{}
 			}

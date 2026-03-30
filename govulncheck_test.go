@@ -10,9 +10,9 @@ import (
 )
 
 // TestParseGovulncheckOpenVEX verifies we parse govulncheck -format openvex output using go-vex.
-// Confirmed = status "called"; considered = all vuln IDs (name + aliases) from every statement.
+// Confirmed = status "affected"; considered = all vuln IDs (name + aliases) from every statement.
 func TestParseGovulncheckOpenVEX(t *testing.T) {
-	// OpenVEX doc: one vuln considered only (not_affected), one vuln confirmed (called).
+	// OpenVEX doc: one vuln considered only (not_affected), one vuln confirmed (affected).
 	input := []byte(`{
   "@context": "https://openvex.dev/ns/v0.2.0",
   "version": 1,
@@ -26,7 +26,7 @@ func TestParseGovulncheckOpenVEX(t *testing.T) {
     {
       "vulnerability": {"name": "GO-2024-5678"},
       "products": [{"@id": "pkg:go/binary"}],
-      "status": "called"
+      "status": "affected"
     }
   ]
 }`)
@@ -56,14 +56,14 @@ func TestParseGovulncheckOpenVEX(t *testing.T) {
 		t.Error("confirmed missing GO-2024-5678")
 	}
 
-	// Status not "called" => not confirmed
-	noCalled := []byte(`{"@context":"https://openvex.dev/ns/v0.2.0","version":1,"statements":[{"vulnerability":{"name":"GO-2024-0000"},"products":[{"@id":"x"}],"status":"not_affected","justification":"vulnerable_code_not_present"}]}`)
-	_, confNoCalled, _, err := parseGovulncheckOpenVEX(noCalled, "")
+	// Status not "affected" => not confirmed
+	noAffected := []byte(`{"@context":"https://openvex.dev/ns/v0.2.0","version":1,"statements":[{"vulnerability":{"name":"GO-2024-0000"},"products":[{"@id":"x"}],"status":"not_affected","justification":"vulnerable_code_not_present"}]}`)
+	_, confNoAffected, _, err := parseGovulncheckOpenVEX(noAffected, "")
 	if err != nil {
-		t.Fatalf("parseGovulncheckOpenVEX(noCalled): %v", err)
+		t.Fatalf("parseGovulncheckOpenVEX(noAffected): %v", err)
 	}
-	if len(confNoCalled) != 0 {
-		t.Errorf("statements without status called should not be confirmed, got %d: %v", len(confNoCalled), confNoCalled)
+	if len(confNoAffected) != 0 {
+		t.Errorf("statements without status affected should not be confirmed, got %d: %v", len(confNoAffected), confNoAffected)
 	}
 }
 
