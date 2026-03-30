@@ -84,13 +84,13 @@ func TestParseGovulncheckOpenVEX_dbInfo(t *testing.T) {
 
 func TestFormatPluginSource(t *testing.T) {
 	// No dbInfo: source is plugin and govulncheck version only (empty version becomes "unknown")
-	if got := formatPluginSource("0.1.1", "", nil); got != "trivy-plugin-govulncheck 0.1.1 (govulncheck unknown)" {
+	if got := formatPluginSource("0.1.2", "", nil); got != "trivy-plugin-govulncheck 0.1.2 (govulncheck unknown)" {
 		t.Errorf("formatPluginSource(nil) = %q", got)
 	}
 	// With dbInfo: source includes vuln DB and last modified
 	dbInfo := &govulncheckDBInfo{DB: "https://vuln.go.dev", DBLastModified: "2024-01-15T12:00:00Z"}
-	got := formatPluginSource("0.1.1", "v1.0.0", dbInfo)
-	if got != "trivy-plugin-govulncheck 0.1.1 (govulncheck v1.0.0) (vuln DB: https://vuln.go.dev, last modified: 2024-01-15T12:00:00Z)" {
+	got := formatPluginSource("0.1.2", "v1.0.0", dbInfo)
+	if got != "trivy-plugin-govulncheck 0.1.2 (govulncheck v1.0.0) (vuln DB: https://vuln.go.dev, last modified: 2024-01-15T12:00:00Z)" {
 		t.Errorf("formatPluginSource(dbInfo) = %q", got)
 	}
 	// DB only, no last modified

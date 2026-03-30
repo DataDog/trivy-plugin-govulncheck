@@ -14,7 +14,7 @@ deps:
 	go mod tidy
 	go mod download
 
-VERSION ?= 0.1.1
+VERSION ?= 0.1.2
 
 build: deps
 	go build -ldflags "-X main.pluginVersion=$(VERSION)" -o trivy-govulncheck .

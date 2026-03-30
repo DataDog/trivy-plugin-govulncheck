@@ -24,7 +24,7 @@ The plugin does **not** use Trivy's image cache. When you run `trivy image ... |
 
 ## Installation
 
-**One-step install** (after a release is published, e.g. v0.1.1):
+**One-step install** (after a release is published, e.g. v0.1.2):
 
 ```bash
 trivy plugin install github.com/DataDog/trivy-plugin-govulncheck
@@ -178,7 +178,7 @@ See [LICENSE](LICENSE) in this repository.
 
 ## Releasing
 
-Releases are built with [GoReleaser](https://goreleaser.com/). Pushing a tag `v*` (e.g. `v0.1.1`) triggers [.github/workflows/release.yaml](.github/workflows/release.yaml), which builds binaries for darwin/linux and amd64/arm64, packages them with `plugin.yaml`, README, and LICENSE, and publishes the artifacts to the [GitHub Releases](https://github.com/DataDog/trivy-plugin-govulncheck/releases) page.
+Releases are built with [GoReleaser](https://goreleaser.com/). Pushing a tag `v*` (e.g. `v0.1.2`) triggers [.github/workflows/release.yaml](.github/workflows/release.yaml), which builds binaries for darwin/linux and amd64/arm64, packages them with `plugin.yaml`, README, and LICENSE, and publishes the artifacts to the [GitHub Releases](https://github.com/DataDog/trivy-plugin-govulncheck/releases) page.
 
 After cutting a new release, update the `version` and `platforms[].uri` URLs in `plugin.yaml` to match the new version so `trivy plugin install github.com/DataDog/trivy-plugin-govulncheck` fetches the new release.
 
