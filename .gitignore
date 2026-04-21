@@ -3,3 +3,5 @@ dist/
 *.tar.gz
 *.zip
 third_party_licenses/
+
+.vscode/
