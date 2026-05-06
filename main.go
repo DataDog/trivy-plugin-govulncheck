@@ -19,7 +19,7 @@ import (
 	"github.com/aquasecurity/trivy/pkg/types"
 )
 
-// pluginVersion is set at build time via -ldflags "-X main.pluginVersion=0.1.3" to match plugin.yaml.
+// pluginVersion is set at build time via -ldflags "-X main.pluginVersion=0.1.4" to match plugin.yaml.
 var pluginVersion = "dev"
 
 func main() {
