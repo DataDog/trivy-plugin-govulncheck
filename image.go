@@ -16,6 +16,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
@@ -67,7 +68,7 @@ func extractImageToTemp(imageRef string) (string, func(), error) {
 		cleanup()
 		return "", nil, fmt.Errorf("parse image reference: %w", err)
 	}
-	img, err := remote.Image(ref)
+	img, err := remote.Image(ref, remote.WithAuthFromKeychain(authn.DefaultKeychain))
 	if err != nil {
 		cleanup()
 		return "", nil, fmt.Errorf("pull image: %w", err)
