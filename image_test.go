@@ -8,9 +8,14 @@ package main
 import (
 	"archive/tar"
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"io"
 	"log"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -209,5 +214,101 @@ func TestExtractTarToDir_plainTarStillWorks(t *testing.T) {
 	b, err := os.ReadFile(filepath.Join(dir, "bin", "app"))
 	if err != nil || string(b) != "elf" {
 		t.Fatalf("bin/app: %v, %q", err, b)
+	}
+}
+
+// startMockRegistry starts an HTTP server that always responds with a Basic
+// auth challenge and records the Authorization header from the latest
+// non-/v2/ request — i.e. the manifest fetch, where the keychain credentials
+// (if any) would be applied by the go-containerregistry transport.
+func startMockRegistry(t *testing.T) (host string, lastAuth *string, stop func()) {
+	t.Helper()
+	var hdr string
+	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v2/" {
+			hdr = r.Header.Get("Authorization")
+		}
+		w.Header().Set("WWW-Authenticate", `Basic realm="test"`)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	}))
+	u, err := url.Parse(s.URL)
+	if err != nil {
+		s.Close()
+		t.Fatalf("url.Parse(%q): %v", s.URL, err)
+	}
+	return u.Host, &hdr, s.Close
+}
+
+// useIsolatedDockerConfig points authn.DefaultKeychain at a per-test config
+// directory via $DOCKER_CONFIG, and clears the other auth-file env vars the
+// keychain consults so this is the only source of credentials. Returns the
+// path where a docker config.json may be written to make creds visible to
+// the keychain.
+func useIsolatedDockerConfig(t *testing.T) string {
+	t.Helper()
+	cfgDir := t.TempDir()
+	t.Setenv("DOCKER_CONFIG", cfgDir)
+	t.Setenv("REGISTRY_AUTH_FILE", "")
+	t.Setenv("XDG_RUNTIME_DIR", "")
+	return filepath.Join(cfgDir, "config.json")
+}
+
+// writeDockerConfig writes a docker config.json with Basic auth creds for
+// registryHost. The format matches what `docker login` produces.
+func writeDockerConfig(t *testing.T, configPath, registryHost, user, pass string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
+		t.Fatalf("MkdirAll(%q): %v", filepath.Dir(configPath), err)
+	}
+	auth := base64.StdEncoding.EncodeToString([]byte(user + ":" + pass))
+	cfg := map[string]any{
+		"auths": map[string]any{
+			registryHost: map[string]any{"auth": auth},
+		},
+	}
+	b, err := json.Marshal(cfg)
+	if err != nil {
+		t.Fatalf("json.Marshal: %v", err)
+	}
+	if err := os.WriteFile(configPath, b, 0o600); err != nil {
+		t.Fatalf("WriteFile(%q): %v", configPath, err)
+	}
+}
+
+// TestExtractImageToTemp_sendsAuthFromDockerConfig verifies that credentials
+// stored in $DOCKER_CONFIG/config.json reach the registry on the manifest
+// request — i.e. that authn.DefaultKeychain is being consulted.
+func TestExtractImageToTemp_sendsAuthFromDockerConfig(t *testing.T) {
+	configPath := useIsolatedDockerConfig(t)
+	host, lastAuth, stop := startMockRegistry(t)
+	defer stop()
+
+	user, pass := "tester", "s3cret"
+	writeDockerConfig(t, configPath, host, user, pass)
+
+	if _, _, err := extractImageToTemp(host + "/repo:latest"); err == nil {
+		t.Fatal("expected error from registry that always returns 401")
+	}
+
+	want := "Basic " + base64.StdEncoding.EncodeToString([]byte(user+":"+pass))
+	if *lastAuth != want {
+		t.Errorf("Authorization header sent = %q, want %q", *lastAuth, want)
+	}
+}
+
+// TestExtractImageToTemp_anonymousWhenNoDockerConfig verifies that with no
+// docker config present, no Authorization header is sent — the keychain
+// resolves to Anonymous.
+func TestExtractImageToTemp_anonymousWhenNoDockerConfig(t *testing.T) {
+	useIsolatedDockerConfig(t)
+	host, lastAuth, stop := startMockRegistry(t)
+	defer stop()
+
+	if _, _, err := extractImageToTemp(host + "/repo:latest"); err == nil {
+		t.Fatal("expected error from registry that always returns 401")
+	}
+
+	if *lastAuth != "" {
+		t.Errorf("Authorization header sent = %q, want empty (anonymous)", *lastAuth)
 	}
 }
